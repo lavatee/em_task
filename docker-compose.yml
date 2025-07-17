@@ -1,0 +1,44 @@
+version: '3.8'
+networks:
+  subs:
+services:
+  postgres:
+    restart: always
+    image: postgres:latest
+    volumes:
+      - ./.database/postgres/data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: lavate
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - 5432:5432
+    networks:
+      - subs
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 7s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+  api:
+    build: ./
+    command: ./main
+    ports:
+      - 8080:8080
+    depends_on:
+      postgres:
+        condition: service_healthy
+        restart: true
+    networks:
+      - subs
+  swagger:
+    image: swaggerapi/swagger-ui
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./docs/swagger.yaml:/usr/share/nginx/html/swagger.yaml
+    environment:
+      - URL=swagger.yaml
+    depends_on:
+      - api

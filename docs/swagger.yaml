@@ -1,0 +1,284 @@
+basePath: /api/v1
+definitions:
+  model.CreateSubscriptionRequest:
+    properties:
+      end_date:
+        type: string
+      price:
+        minimum: 1
+        type: integer
+      service_name:
+        type: string
+      start_date:
+        type: string
+      user_id:
+        type: string
+    required:
+    - price
+    - service_name
+    - start_date
+    - user_id
+    type: object
+  model.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  model.Subscription:
+    properties:
+      created_at:
+        type: string
+      end_date:
+        type: string
+      id:
+        type: string
+      price:
+        type: integer
+      service_name:
+        type: string
+      start_date:
+        type: string
+      user_id:
+        type: string
+    type: object
+  model.SubscriptionListResponse:
+    properties:
+      subscriptions:
+        items:
+          $ref: '#/definitions/model.Subscription'
+        type: array
+    type: object
+  model.SubscriptionResponse:
+    properties:
+      subscription:
+        $ref: '#/definitions/model.Subscription'
+    type: object
+  model.TotalCostResponse:
+    properties:
+      total_cost:
+        type: integer
+    type: object
+  model.UpdateSubscriptionRequest:
+    properties:
+      end_date:
+        type: string
+      price:
+        minimum: 0
+        type: integer
+      service_name:
+        type: string
+      start_date:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: REST-сервис для агрегации данных об онлайн-подписках пользователей
+  title: Subscription Service API
+  version: "1.0"
+paths:
+  /subscriptions:
+    get:
+      consumes:
+      - application/json
+      description: Получение подписок с возможной фильтрацией по ID пользователя и
+        названию сервиса
+      parameters:
+      - description: Фильтрация по ID пользователя
+        in: query
+        name: user_id
+        type: string
+      - description: Фильтрация по названию сервиса
+        in: query
+        name: service_name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.SubscriptionListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Получение подписок
+      tags:
+      - subscriptions
+    post:
+      consumes:
+      - application/json
+      description: Создание новой подписки пользователя
+      parameters:
+      - description: Данные о подписке
+        in: body
+        name: subscription
+        required: true
+        schema:
+          $ref: '#/definitions/model.CreateSubscriptionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.SubscriptionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Создание подписки
+      tags:
+      - subscriptions
+  /subscriptions/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Удаление подписки по ID
+      parameters:
+      - description: ID подписки
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Удаление подписки
+      tags:
+      - subscriptions
+    get:
+      consumes:
+      - application/json
+      description: Получение данных об одной подписке по ID
+      parameters:
+      - description: ID подписки
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.SubscriptionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Получение одной подписки
+      tags:
+      - subscriptions
+    put:
+      consumes:
+      - application/json
+      description: Обновление данных подписки
+      parameters:
+      - description: ID подписки
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Данные о подписке
+        in: body
+        name: subscription
+        required: true
+        schema:
+          $ref: '#/definitions/model.UpdateSubscriptionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.SubscriptionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Изменение подписки
+      tags:
+      - subscriptions
+  /subscriptions/total:
+    get:
+      consumes:
+      - application/json
+      description: Подсчет суммарной стоимости всех подписок за выбранный период с
+        фильтрацией по id пользователя и названию подписки
+      parameters:
+      - description: Фильтрация по ID пользователя
+        in: query
+        name: user_id
+        type: string
+      - description: Фильтрация по названию сервиса
+        in: query
+        name: service_name
+        type: string
+      - description: Начальная дата (MM-YYYY)
+        in: query
+        name: start_date
+        type: string
+      - description: Конечная дата (MM-YYYY)
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.TotalCostResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Получение стоимости всех подписок
+      tags:
+      - subscriptions
+swagger: "2.0"
